@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\VilleController;
 use App\Http\Controllers\Api\ArrondissementController;
 use App\Http\Controllers\Api\QuartierController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\HomeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -37,3 +38,5 @@ Route::resource('communes', CommuneController::class, ['except' => ['create', 'e
 Route::resource('villes', VilleController::class, ['except' => ['create', 'edit']]);
 Route::resource('arrondissements', ArrondissementController::class, ['except' => ['create', 'edit']]);
 Route::resource('quartiers', QuartierController::class, ['except' => ['create', 'edit']]);
+Route::get('/', [HomeController::class, 'index']); // Page d'accueil
+Route::get('/search', [HomeController::class, 'search']); // Recherche avancée

@@ -16,9 +16,15 @@ class TypeuserController extends Controller
      */
     public function index(Request $request)
     {
-        $typeusers = typeuser::latest()->paginate(25);
+        $search = $request->input('search'); // Récupère le terme de recherche
+        $sortBy = $request->input('sortBy', 'created_at'); // Par défaut trié par 'created_at'
+        $sortOrder = $request->input('sortOrder', 'desc'); // Ordre décroissant par défaut
 
-        return $typeusers;
+        $typeusers = Typeuser::search($search)
+            ->sort($sortBy, $sortOrder)
+            ->paginate(25);
+
+        return response()->json($typeusers);
     }
 
     /**
@@ -30,7 +36,7 @@ class TypeuserController extends Controller
      */
     public function store(Request $request)
     {
-        
+
         $typeuser = typeuser::create($request->all());
 
         return response()->json($typeuser, 201);
@@ -60,7 +66,7 @@ class TypeuserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        
+
         $typeuser = typeuser::findOrFail($id);
         $typeuser->update($request->all());
 

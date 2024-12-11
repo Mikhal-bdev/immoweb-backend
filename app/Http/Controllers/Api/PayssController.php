@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Commune;
+use App\Models\Departement;
 use App\Models\LogActivity;
 use App\Models\payss;
 use Illuminate\Http\Request;
@@ -16,18 +18,11 @@ class PayssController extends Controller
      */
     public function index(Request $request)
     {
-        // Récupérer l'utilisateur connecté
-        $user = auth()->user();
-
-        // Vérifier si l'utilisateur appartient au service "Caisse" ou s'il a le rôle "Admin" ou "SU Admin"
-        if (!in_array($user->role, ['Admin', 'SU Admin'])) {
-            return abort(403, 'Accès non autorisé');
-        }
-
+        // Recherche et tri pour les pays
         $search = $request->get('search');
-        $sort = $request->get('sort', 'code'); // Tri par défaut par 'code'
+        $sort = $request->get('sort', 'code'); // Tri par défaut par code
         $direction = $request->get('direction', 'asc'); // Ordre par défaut ascendant
-
+    
         $payss = Payss::when($search, function ($query, $search) {
             return $query->where('code', 'like', "%{$search}%")
                 ->orWhere('alpha2', 'like', "%{$search}%")
@@ -35,16 +30,26 @@ class PayssController extends Controller
                 ->orWhere('nom_en_gb', 'like', "%{$search}%")
                 ->orWhere('nom_fr_fr', 'like', "%{$search}%");
         })
-            ->orderBy($sort, $direction) // Tri par le champ spécifié
-            ->paginate(10); // Pagination à 10 éléments par page
-
-        // Enregistrer un log pour la consultation des factures
-        LogActivity::addToLog('Consultation', 'Consultation de la liste des pays.');
-
-        $payss = payss::latest()->paginate(25);
-
-        return $payss;
-    }
+        ->orderBy($sort, $direction)
+        ->paginate(10);
+    
+        // Recherche pour les départements
+        $departements = Departement::when($search, function ($query, $search) {
+            return $query->where('nom_dep', 'like', "%{$search}%");
+        })
+        ->orderBy('nom_dep', 'asc')
+        ->paginate(10);
+    
+        // Recherche pour les communes
+        $communes = Commune::when($search, function ($query, $search) {
+            return $query->where('nom_commune', 'like', "%{$search}%");
+        })
+        ->orderBy('nom_commune', 'asc')
+        ->paginate(10);
+    
+        // Retour à la vue avec les données
+        return view('pays.index', compact('payss', 'departements', 'communes'));
+    }    
 
     /**
      * Store a newly created resource in storage.
@@ -55,7 +60,7 @@ class PayssController extends Controller
      */
     public function store(Request $request)
     {
-        
+
         $payss = payss::create($request->all());
 
         return response()->json($payss, 201);
@@ -85,7 +90,7 @@ class PayssController extends Controller
      */
     public function update(Request $request, $id)
     {
-        
+
         $payss = payss::findOrFail($id);
         $payss->update($request->all());
 

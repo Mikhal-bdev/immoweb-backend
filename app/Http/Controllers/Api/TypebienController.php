@@ -3,22 +3,39 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-
-use App\Models\typebien;
+use App\Models\Typebien;
 use Illuminate\Http\Request;
 
 class TypebienController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource with search and sorting.
      *
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
     {
-        $typebiens = typebien::latest()->paginate(25);
+        // Récupérer les paramètres de recherche et tri
+        $search = $request->input('search'); // Terme de recherche
+        $sortBy = $request->input('sortBy', 'created_at'); // Champ de tri (par défaut : created_at)
+        $sortOrder = $request->input('sortOrder', 'desc'); // Ordre de tri (par défaut : desc)
 
-        return $typebiens;
+        // Construire la requête
+        $query = Typebien::query();
+
+        // Appliquer le filtre de recherche
+        if ($search) {
+            $query->where('type', 'LIKE', "%{$search}%")
+                ->orWhere('designation', 'LIKE', "%{$search}%");
+        }
+
+        // Appliquer le tri
+        $query->orderBy($sortBy, $sortOrder);
+
+        // Pagination des résultats
+        $typebiens = $query->paginate(25);
+
+        return response()->json($typebiens);
     }
 
     /**
@@ -30,8 +47,7 @@ class TypebienController extends Controller
      */
     public function store(Request $request)
     {
-        
-        $typebien = typebien::create($request->all());
+        $typebien = Typebien::create($request->all());
 
         return response()->json($typebien, 201);
     }
@@ -45,9 +61,9 @@ class TypebienController extends Controller
      */
     public function show($id)
     {
-        $typebien = typebien::findOrFail($id);
+        $typebien = Typebien::findOrFail($id);
 
-        return $typebien;
+        return response()->json($typebien);
     }
 
     /**
@@ -60,8 +76,7 @@ class TypebienController extends Controller
      */
     public function update(Request $request, $id)
     {
-        
-        $typebien = typebien::findOrFail($id);
+        $typebien = Typebien::findOrFail($id);
         $typebien->update($request->all());
 
         return response()->json($typebien, 200);
@@ -76,7 +91,7 @@ class TypebienController extends Controller
      */
     public function destroy($id)
     {
-        typebien::destroy($id);
+        Typebien::destroy($id);
 
         return response()->json(null, 204);
     }

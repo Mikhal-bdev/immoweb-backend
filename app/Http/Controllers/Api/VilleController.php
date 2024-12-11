@@ -16,9 +16,15 @@ class VilleController extends Controller
      */
     public function index(Request $request)
     {
-        $villes = ville::latest()->paginate(25);
+        $search = $request->input('search'); // Récupère le terme de recherche
+        $sortBy = $request->input('sortBy', 'created_at'); // Par défaut trié par 'created_at'
+        $sortOrder = $request->input('sortOrder', 'desc'); // Ordre décroissant par défaut
 
-        return $villes;
+        $villes = Ville::search($search)
+            ->sort($sortBy, $sortOrder)
+            ->paginate(25);
+
+        return response()->json($villes);
     }
 
     /**
@@ -30,7 +36,7 @@ class VilleController extends Controller
      */
     public function store(Request $request)
     {
-        
+
         $ville = ville::create($request->all());
 
         return response()->json($ville, 201);
@@ -60,7 +66,7 @@ class VilleController extends Controller
      */
     public function update(Request $request, $id)
     {
-        
+
         $ville = ville::findOrFail($id);
         $ville->update($request->all());
 

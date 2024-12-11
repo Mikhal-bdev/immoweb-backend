@@ -17,7 +17,21 @@ class DepartementController extends Controller
      */
     public function index(Request $request)
     {
-        $departements = Departement::latest()->paginate(25);
+        // Récupérer les paramètres de recherche, tri, et pagination
+        $search = $request->get('search'); // Recherche
+        $sort = $request->get('sort', 'created_at'); // Tri par défaut : 'created_at'
+        $direction = $request->get('direction', 'desc'); // Ordre par défaut : 'desc'
+        $perPage = $request->get('per_page', 25); // Pagination par défaut : 25 éléments
+
+        // Construire la requête avec recherche et tri
+        $departements = Departement::when($search, function ($query, $search) {
+            return $query->where('nom', 'like', "%{$search}%") // Exemple de champ 'nom'
+                ->orWhere('code', 'like', "%{$search}%"); // Exemple de champ 'code'
+        })
+            ->orderBy($sort, $direction) // Appliquer le tri
+            ->paginate($perPage); // Appliquer la pagination
+
+        // Retourner les résultats
         return response()->json($departements, 200);
     }
 

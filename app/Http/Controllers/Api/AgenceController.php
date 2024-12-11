@@ -17,14 +17,18 @@ class AgenceController extends Controller
      */
     public function index(Request $request)
     {
-        $search = $request->input('search');
+        $search = $request->input('search'); // Recherche
+        $sort = $request->input('sort', 'created_at'); // Tri par défaut : 'created_at'
+        $direction = $request->input('direction', 'desc'); // Direction par défaut : 'desc'
+        $perPage = $request->input('per_page', 25); // Nombre d'éléments par page par défaut : 25
+
         $agences = Agence::query()
             ->when($search, function ($query, $search) {
                 $query->where('nom', 'like', '%' . $search . '%')
                     ->orWhere('adresse', 'like', '%' . $search . '%');
             })
-            ->latest()
-            ->paginate(25);
+            ->orderBy($sort, $direction) // Appliquer le tri dynamique
+            ->paginate($perPage); // Appliquer la pagination
 
         return response()->json($agences);
     }

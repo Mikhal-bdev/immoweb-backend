@@ -52,4 +52,8 @@ class Agence extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function biens()
+    {
+        return $this->hasMany(Bien::class);
+    }
 }

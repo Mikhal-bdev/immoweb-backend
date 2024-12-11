@@ -16,7 +16,17 @@ class PrivilegeController extends Controller
      */
     public function index(Request $request)
     {
-        $privileges = Privilege::latest()->paginate(25);
+        $search = $request->input('search'); // Récupère le terme de recherche
+        $sortBy = $request->input('sortBy', 'created_at'); // Par défaut trié par 'created_at'
+        $sortOrder = $request->input('sortOrder', 'desc'); // Ordre décroissant par défaut
+
+        // Applique la recherche et le tri
+        $privileges = Privilege::when($search, function ($query, $search) {
+            $query->where('typepriv', 'LIKE', "%{$search}%")
+                ->orWhere('designpriv', 'LIKE', "%{$search}%");
+        })
+            ->orderBy($sortBy, $sortOrder)
+            ->paginate(25);
 
         return response()->json($privileges, 200);
     }
